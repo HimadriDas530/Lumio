@@ -1,19 +1,34 @@
-const express = require("express");
-const app = express();
 const port = process.env.PORT || 8080;
-
 const dotenv = require("dotenv");
 dotenv.config();
 
-const authRoutes = require("./routes/auth.routes");
-const connectMongoDB = require("./DB/connectMongoDB");
+const cloudinary = require("cloudinary").v2;
+// const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-// last added
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUD_API_KEY,
+  api_secret: process.env.CLOUD_API_SECRET,
+});
+
+// packages
+const express = require("express");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const passport = require("passport");
-const User = require("./models/user.model");
 const cookieParser = require("cookie-parser");
+
+// routes
+const authRoutes = require("./routes/auth.routes");
+const userRoutes = require("./routes/user.routes");
+
+// models
+const User = require("./models/user.model");
+
+// middlewares
+const connectMongoDB = require("./DB/connectMongoDB");
+
+// -----------------------------------------------------//
 
 // connecting the database
 connectMongoDB()
@@ -25,6 +40,7 @@ connectMongoDB()
   });
 
 // starting the backend server
+const app = express();
 app.listen(port, () => {
   console.log("app is listening on 8080");
 });
@@ -72,6 +88,8 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 //
 
+// -------------------------------------------------------//
+
 // index route
 app.get("/", (req, res) => {
   res.send("are u an idiot");
@@ -79,3 +97,5 @@ app.get("/", (req, res) => {
 
 // Authentication routes
 app.use("/api/auth", authRoutes);
+// users  routes
+app.use("/api/users", userRoutes);
