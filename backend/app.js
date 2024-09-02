@@ -22,6 +22,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth.route");
 const userRoutes = require("./routes/user.route");
 const postRoutes = require("./routes/post.route");
+const notificationRoutes = require("./routes/notification.route");
 // models
 const User = require("./models/user.model");
 
@@ -98,3 +99,4 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/notifications", notificationRoutes);
