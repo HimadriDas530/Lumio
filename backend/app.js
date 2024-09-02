@@ -21,7 +21,7 @@ const cookieParser = require("cookie-parser");
 // routes
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
-
+const postRoutes = require("./routes/post.routes");
 // models
 const User = require("./models/user.model");
 
@@ -95,7 +95,6 @@ app.get("/", (req, res) => {
   res.send("are u an idiot");
 });
 
-// Authentication routes
 app.use("/api/auth", authRoutes);
-// users  routes
 app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
