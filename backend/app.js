@@ -19,9 +19,9 @@ const passport = require("passport");
 const cookieParser = require("cookie-parser");
 
 // routes
-const authRoutes = require("./routes/auth.routes");
-const userRoutes = require("./routes/user.routes");
-const postRoutes = require("./routes/post.routes");
+const authRoutes = require("./routes/auth.route");
+const userRoutes = require("./routes/user.route");
+const postRoutes = require("./routes/post.route");
 // models
 const User = require("./models/user.model");
 
