@@ -158,7 +158,7 @@ module.exports.getLikedPosts = async (req,res)=>{
     const {id:userId} = req.params;
     try{
         const user = await User.findById(userId);
-        const likedPosts = await Post.find({_id: {$in:user.likedPosts}}).populate("user").populate("comments.user");
+        const likedPosts = await Post.find({_id: {$in:user.likedPosts}}).sort({createdAt:-1}).populate("user").populate("comments.user");
 
         if(likedPosts.length==0){
             return res.status(200).json({message:"No liked posts"});
@@ -181,7 +181,7 @@ module.exports.getFollowingPosts = async (req,res)=>{
         }
         const following = user.following;
         
-        const feedPosts = await Post.find({user:{$in:following}}).populate("user").populate("comments.user");
+        const feedPosts = await Post.find({user:{$in:following}}).sort({createdAt:-1}).populate("user").populate("comments.user");
         if(feedPosts.length==0){
             return res.status(200).json({message:"No feed posts"});
         }
@@ -202,7 +202,7 @@ module.exports.getUserPosts = async (req,res)=>{
         if(!user){
             return res.status(404).json({message:"User not found"});
         }
-        const userPosts = await Post.find({user:user._id}).populate("user").populate("comments.user");
+        const userPosts = await Post.find({user:user._id}).sort({createdAt:-1}).populate("user").populate("comments.user");
         if(userPosts.length==0){
             return res.status(200).json({message:"No Posts Yet"});
         }
