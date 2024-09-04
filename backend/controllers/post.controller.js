@@ -159,11 +159,6 @@ module.exports.getLikedPosts = async (req,res)=>{
     try{
         const user = await User.findById(userId);
         const likedPosts = await Post.find({_id: {$in:user.likedPosts}}).sort({createdAt:-1}).populate("user").populate("comments.user");
-
-        if(likedPosts.length==0){
-            return res.status(200).json({message:"No liked posts"});
-        }
-
         res.status(200).json(likedPosts);
     }
     catch(error){
@@ -182,10 +177,6 @@ module.exports.getFollowingPosts = async (req,res)=>{
         const following = user.following;
         
         const feedPosts = await Post.find({user:{$in:following}}).sort({createdAt:-1}).populate("user").populate("comments.user");
-        if(feedPosts.length==0){
-            return res.status(200).json({message:"No feed posts"});
-        }
-
         res.status(200).json(feedPosts);
     }
     catch(error){
