@@ -12,6 +12,7 @@ cloudinary.config({
 });
 
 // packages
+const cors = require('cors');
 const express = require("express");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
@@ -46,6 +47,7 @@ app.listen(port, () => {
   console.log("app is listening on 8080");
 });
 
+app.use(cors());
 app.use(express.json()); //for parsing req.body
 app.use(express.urlencoded({ extended: true })); //to parse urlncoded form data
 app.use(cookieParser());

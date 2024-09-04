@@ -4,28 +4,31 @@ const passport = require("passport");
 module.exports.signup = async (req, res, next) => {
   let { fullName, username, email, password } = req.body;
   let newUser = new User({ fullName, username, email });
-  User.register(newUser, password)
-    .then((registeredUser) => {
-      console.log(registeredUser);
-      req.logIn(registeredUser, (err) => {
-        if (err) {
-          next(err);
-        }
-        res.status(201).json({
-          _id: registeredUser._id,
-          fullName: registeredUser.fullName,
-          username: registeredUser.username,
-          email: registeredUser.email,
-          followers: registeredUser.followers,
-          following: registeredUser.following,
-          profileImg: registeredUser.profileImg,
-          coverImg: registeredUser.coverImg,
-        });
+
+  try {
+    const registeredUser = await User.register(newUser, password);
+    console.log(registeredUser);
+
+    req.logIn(registeredUser, (err) => {
+      if (err) {
+        return next(err); // Pass error to the error handling middleware
+      }
+
+      res.status(201).json({
+        _id: registeredUser._id,
+        fullName: registeredUser.fullName,
+        username: registeredUser.username,
+        email: registeredUser.email,
+        followers: registeredUser.followers,
+        following: registeredUser.following,
+        profileImg: registeredUser.profileImg,
+        coverImg: registeredUser.coverImg,
       });
-    })
-    .catch((err) => {
-      res.status(500).send(err);
     });
+  } catch (err) {
+      console.error("Error Signing up:", err.message);
+      res.status(400).json({ error: err.message }); // Use error.message for specific error messages
+  }
 };
 
 module.exports.login = (req, res, next) => {
@@ -35,13 +38,13 @@ module.exports.login = (req, res, next) => {
       console.error("Authentication error:", err);
       return res
         .status(500)
-        .json({ message: "An error occurred during authentication." });
+        .json({ error: "An error occurred during authentication." });
     }
     if (!user) {
       // Authentication failed, send an error response
       return res
         .status(401)
-        .json({ message: info.message || "Invalid username or password." });
+        .json({ error: info.message || "Invalid username or password." });
     }
     req.logIn(user, (err) => {
       if (err) {
@@ -49,7 +52,7 @@ module.exports.login = (req, res, next) => {
         console.error("Login error:", err);
         return res
           .status(500)
-          .json({ message: "An error occurred during login." });
+          .json({ error: "An error occurred during login." });
       }
       // Authentication successful, send a success response
       return res.status(200).json({
@@ -93,3 +96,14 @@ module.exports.logout = async (req, res) => {
     });
   });
 };
+
+module.exports.getMe = async (req,res)=>{
+  try{
+    const user = await User.findById(req.user._id);
+    res.status(200).json(user);
+  }
+  catch(error){
+    console.log("Error in getMe controller", error.message);
+    res.status(500).json({error:"Internal server error"});
+  }
+}
