@@ -48,7 +48,7 @@ app.listen(port, () => {
 });
 
 app.use(cors());
-app.use(express.json()); //for parsing req.body
+app.use(express.json({limit:"5mb"})); //for parsing req.body
 app.use(express.urlencoded({ extended: true })); //to parse urlncoded form data
 app.use(cookieParser());
 
