@@ -113,13 +113,17 @@ module.exports.likeUnlikePost = async(req,res)=>{
             // unlike post
             await Post.updateOne({_id:postId},{$pull:{likes:userId}});
             await User.updateOne({_id: userId},{$pull:{likedPosts:postId}});
-            return res.status(200).json({message:"Post unliked successfully"});
 
+            const updatedLikes = post.likes.filter((id)=> id.toString() !== userId.toString());
+            return res.status(200).json(updatedLikes);
         }
         else{
             // like post
             post.likes.push(userId);
             await post.save();
+
+            // update the users liked posts
+            await User.updateOne({_id: userId},{$push:{likedPosts:postId}});
 
             // add notification
             const notification = new Notification({
@@ -129,9 +133,8 @@ module.exports.likeUnlikePost = async(req,res)=>{
             });
             await notification.save();
 
-            // update the users liked posts
-            await User.updateOne({_id: userId},{$push:{likedPosts:postId}});
-            return res.status(201).json({message: "Post liked successfully"});
+            const updatedLikes = post.likes;
+            return res.status(201).json(updatedLikes);
         }
     }
     catch(error){
