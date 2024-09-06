@@ -148,9 +148,6 @@ module.exports.likeUnlikePost = async(req,res)=>{
 module.exports.getAllPosts = async (req,res)=>{
     try{
         const posts = await Post.find().sort({createdAt: -1}).populate("user").populate("comments.user");
-        if(posts.length === 0){
-            return res.status(200).json([]);
-        }
         res.status(200).json(posts);
     }
     catch(error){
@@ -199,10 +196,6 @@ module.exports.getUserPosts = async (req,res)=>{
             return res.status(404).json({message:"User not found"});
         }
         const userPosts = await Post.find({user:user._id}).sort({createdAt:-1}).populate("user").populate("comments.user");
-        if(userPosts.length==0){
-            return res.status(200).json({message:"No Posts Yet"});
-        }
-
         res.status(200).json(userPosts);
     }
     catch(error){
