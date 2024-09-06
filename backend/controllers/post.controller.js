@@ -89,7 +89,9 @@ module.exports.commentOnPost = async (req,res)=>{
         post.comments.push({text,user:userId});
         await post.save();
 
-        res.status(201).json({message: "Comment added successfully.",post});
+        const updatedPost = await Post.findById(postId).populate('comments.user','fullName username');
+        const updatedComments= updatedPost.comments;
+        res.status(201).json(updatedComments);
     }
     catch(error){
         console.error("Error commenting on post:", error.message);
