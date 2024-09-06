@@ -5,11 +5,7 @@ module.exports.getNotifications = async (req,res)=>{
         const userId = req.user._id;
         const notifications = await Notification.find({to:userId}).populate({path:"from",select:"username profileImg"});
         await Notification.updateMany({to:userId},{read:true});
-        if(notifications.length==0){
-            return res.status(404).json({message:"No notification found"});
-        }
         res.status(200).json(notifications);
-
     }
     catch(error){
         console.log("Error in getNotifications function",error.message);
