@@ -5,8 +5,6 @@ import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
 import EditProfileModal from "./EditProfileModal";
 
-import { POSTS } from "../../utils/db/dummy";
-
 import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
@@ -37,6 +35,18 @@ const ProfilePage = () => {
 		queryKey:['userProfile'],
 		queryFn:async ()=>{
 			const res = await fetch(`/api/users/profile/${username}`);
+			const data = await res.json();
+			if(!res.ok){
+				throw new Error(data.error || "Something went wrong");
+			}
+			return data;
+		}
+	});
+	
+	const {data:posts,refetch:reFetchPosts} = useQuery({
+		queryKey:['userPosts'],
+		queryFn:async ()=>{
+			const res = await fetch(`/api/posts/user/${username}`);
 			const data = await res.json();
 			if(!res.ok){
 				throw new Error(data.error || "Something went wrong");
@@ -97,6 +107,9 @@ const ProfilePage = () => {
 	useEffect(()=>{
 		refetch();
 	},[username,refetch]);
+	useEffect(()=>{
+		reFetchPosts();
+	},[username,reFetchPosts]);
 
 	return (
 		<>
@@ -113,7 +126,7 @@ const ProfilePage = () => {
 								</Link>
 								<div className='flex flex-col'>
 									<p className='font-bold text-lg'>{user?.fullName}</p>
-									<span className='text-sm text-slate-500'>{POSTS?.length} posts</span>
+									<span className='text-sm text-slate-500'>{posts?.length} posts</span>
 								</div>
 							</div>
 							{/* COVER IMG */}
