@@ -61,7 +61,7 @@ const NotificationPage = () => {
 						</ul>
 					</div>
 				</div>
-				{isLoading && (
+				{isLoading && isPending && (
 					<div className='flex justify-center h-full items-center'>
 						<LoadingSpinner size='lg' />
 					</div>

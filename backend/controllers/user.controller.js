@@ -105,7 +105,7 @@ module.exports.updateUser = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      return res.status(404).json({ error: "User not found." });
+      return res.status(404).json({ message: "User not found." });
     }
 
     // Update fields if provided

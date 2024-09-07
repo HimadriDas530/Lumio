@@ -33,8 +33,6 @@ const Posts = ({feedType,username,userId}) => {
 			return data;
 		}
 	});
-
-	console.log(posts);
 	useEffect(()=>{
 		refetch();
 	},[feedType,refetch,username]);
