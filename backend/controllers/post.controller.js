@@ -1,10 +1,10 @@
-const User = require("../models/user.model");
-const Post = require("../models/post.model");
-const Notification  = require("../models/notification.model");
-const cloudinary = require("cloudinary").v2;
+import Notification from "../models/notification.model.js";
+import Post from "../models/post.model.js";
+import User from "../models/user.model.js";
+import { v2 as cloudinary } from "cloudinary";
 
-module.exports.createPost = async (req,res)=>{
-    try{
+export const createPost = async (req, res) => {
+	try{
         const {text} = req.body;
         let {img} = req.body;
         const userId = req.user._id.toString();
@@ -41,10 +41,10 @@ module.exports.createPost = async (req,res)=>{
         res.status(500).json({error:error});
         console.log(error);
     }
-}
+};
 
-module.exports.deletePost= async (req,res)=>{
-    try{
+export const deletePost = async (req, res) => {
+	try{
         const {id} = req.params;
         const post = await Post.findById(id);
         if(!post){
@@ -68,10 +68,10 @@ module.exports.deletePost= async (req,res)=>{
         console.log("Error in deletePost controller: ",error);
         res.status(500).json({error:"Internal server error"});
     }
-}
+};
 
-module.exports.commentOnPost = async (req,res)=>{
-    try{
+export const commentOnPost = async (req, res) => {
+	try{
         const {text} = req.body;
         const postId=req.params.id;
         const userId = req.user._id;
@@ -97,10 +97,10 @@ module.exports.commentOnPost = async (req,res)=>{
         console.error("Error commenting on post:", error.message);
         res.status(500).json({error:"An error occured while commenting on the post"});
     }
-}
+};
 
-module.exports.likeUnlikePost = async(req,res)=>{
-    try{
+export const likeUnlikePost = async (req, res) => {
+	try{
         const postId=req.params.id;
         const userId = req.user._id;
 
@@ -143,63 +143,103 @@ module.exports.likeUnlikePost = async(req,res)=>{
         console.error("Error liking on post:", error.message);
         res.status(500).json({error:"An error occured while liking/unliking the post"});
     }
-}
+};
 
-module.exports.getAllPosts = async (req,res)=>{
-    try{
-        const posts = await Post.find().sort({createdAt: -1}).populate("user").populate("comments.user");
-        res.status(200).json(posts);
-    }
-    catch(error){
-        console.log("Error in getAllposts controller:",error);
-        res.status(500).json({error:"Internal sever error"});
-    }
-}
+export const getAllPosts = async (req, res) => {
+	try {
+		const posts = await Post.find()
+			.sort({ createdAt: -1 })
+			.populate({
+				path: "user",
+				select: "-password",
+			})
+			.populate({
+				path: "comments.user",
+				select: "-password",
+			});
 
-module.exports.getLikedPosts = async (req,res)=>{
-    const {id:userId} = req.params;
-    try{
-        const user = await User.findById(userId);
-        const likedPosts = await Post.find({_id: {$in:user.likedPosts}}).sort({createdAt:-1}).populate("user").populate("comments.user");
-        res.status(200).json(likedPosts);
-    }
-    catch(error){
-        console.error("Error getting the liked posts:", error.message);
-        res.status(500).json({error:"An error occured while getting the liked post"});
-    }
-}
+		if (posts.length === 0) {
+			return res.status(200).json([]);
+		}
 
-module.exports.getFollowingPosts = async (req,res)=>{
-    const userId = req.user._id.toString();
-    try{
-        const user = await User.findById(userId);
-        if(!user) {
-            return res.status(404).json({error:"User not found"});
-        }
-        const following = user.following;
-        
-        const feedPosts = await Post.find({user:{$in:following}}).sort({createdAt:-1}).populate("user").populate("comments.user");
-        res.status(200).json(feedPosts);
-    }
-    catch(error){
-        console.error("Error getting the following posts:", error.message);
-        res.status(500).json({error:"An error occured while getting the feed post"});
-    }
+		res.status(200).json(posts);
+	} catch (error) {
+		console.log("Error in getAllPosts controller: ", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
 
-}
+export const getLikedPosts = async (req, res) => {
+	const userId = req.params.id;
 
-module.exports.getUserPosts = async (req,res)=>{
-    const {username} = req.params;
-    try{
-        const user = await User.findOne({username});
-        if(!user){
-            return res.status(404).json({message:"User not found"});
-        }
-        const userPosts = await Post.find({user:user._id}).sort({createdAt:-1}).populate("user").populate("comments.user");
-        res.status(200).json(userPosts);
-    }
-    catch(error){
-        console.error("Error getting the user posts:", error.message);
-        res.status(500).json({error:"An error occured while getting the user post"});
-    }
-}
+	try {
+		const user = await User.findById(userId);
+		if (!user) return res.status(404).json({ error: "User not found" });
+
+		const likedPosts = await Post.find({ _id: { $in: user.likedPosts } })
+			.populate({
+				path: "user",
+				select: "-password",
+			})
+			.populate({
+				path: "comments.user",
+				select: "-password",
+			});
+
+		res.status(200).json(likedPosts);
+	} catch (error) {
+		console.log("Error in getLikedPosts controller: ", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
+export const getFollowingPosts = async (req, res) => {
+	try {
+		const userId = req.user._id;
+		const user = await User.findById(userId);
+		if (!user) return res.status(404).json({ error: "User not found" });
+
+		const following = user.following;
+
+		const feedPosts = await Post.find({ user: { $in: following } })
+			.sort({ createdAt: -1 })
+			.populate({
+				path: "user",
+				select: "-password",
+			})
+			.populate({
+				path: "comments.user",
+				select: "-password",
+			});
+
+		res.status(200).json(feedPosts);
+	} catch (error) {
+		console.log("Error in getFollowingPosts controller: ", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
+export const getUserPosts = async (req, res) => {
+	try {
+		const { username } = req.params;
+
+		const user = await User.findOne({ username });
+		if (!user) return res.status(404).json({ error: "User not found" });
+
+		const posts = await Post.find({ user: user._id })
+			.sort({ createdAt: -1 })
+			.populate({
+				path: "user",
+				select: "-password",
+			})
+			.populate({
+				path: "comments.user",
+				select: "-password",
+			});
+
+		res.status(200).json(posts);
+	} catch (error) {
+		console.log("Error in getUserPosts controller: ", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};

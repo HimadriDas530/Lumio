@@ -1,109 +1,107 @@
-const User = require("../models/user.model");
-const passport = require("passport");
+import { generateTokenAndSetCookie } from "../lib/utils/generateToken.js";
+import User from "../models/user.model.js";
+import bcrypt from "bcryptjs";
 
-module.exports.signup = async (req, res, next) => {
-  let { fullName, username, email, password } = req.body;
-  let newUser = new User({ fullName, username, email });
+export const signup = async (req, res) => {
+	try {
+		const { fullName, username, email, password } = req.body;
 
-  try {
-    const registeredUser = await User.register(newUser, password);
-    console.log(registeredUser);
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+			return res.status(400).json({ error: "Invalid email format" });
+		}
 
-    req.logIn(registeredUser, (err) => {
-      if (err) {
-        return next(err); // Pass error to the error handling middleware
-      }
+		const existingUser = await User.findOne({ username });
+		if (existingUser) {
+			return res.status(400).json({ error: "Username is already taken" });
+		}
 
-      res.status(201).json({
-        _id: registeredUser._id,
-        fullName: registeredUser.fullName,
-        username: registeredUser.username,
-        email: registeredUser.email,
-        followers: registeredUser.followers,
-        following: registeredUser.following,
-        profileImg: registeredUser.profileImg,
-        coverImg: registeredUser.coverImg,
-      });
-    });
-  } catch (err) {
-      console.error("Error Signing up:", err.message);
-      res.status(400).json({ error: err.message }); // Use error.message for specific error messages
-  }
+		const existingEmail = await User.findOne({ email });
+		if (existingEmail) {
+			return res.status(400).json({ error: "Email is already taken" });
+		}
+
+		if (password.length < 6) {
+			return res.status(400).json({ error: "Password must be at least 6 characters long" });
+		}
+
+		const salt = await bcrypt.genSalt(10);
+		const hashedPassword = await bcrypt.hash(password, salt);
+
+		const newUser = new User({
+			fullName,
+			username,
+			email,
+			password: hashedPassword,
+		});
+
+		if (newUser) {
+			generateTokenAndSetCookie(newUser._id, res);
+			await newUser.save();
+
+			res.status(201).json({
+				_id: newUser._id,
+				fullName: newUser.fullName,
+				username: newUser.username,
+				email: newUser.email,
+				followers: newUser.followers,
+				following: newUser.following,
+				profileImg: newUser.profileImg,
+				coverImg: newUser.coverImg,
+			});
+		} else {
+			res.status(400).json({ error: "Invalid user data" });
+		}
+	} catch (error) {
+		console.log("Error in signup controller", error.message);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
 };
 
-module.exports.login = (req, res, next) => {
-  passport.authenticate("local", (err, user, info) => {
-    if (err) {
-      // Log unexpected errors
-      console.error("Authentication error:", err);
-      return res
-        .status(500)
-        .json({ error: "An error occurred during authentication." });
-    }
-    if (!user) {
-      // Authentication failed, send an error response
-      return res
-        .status(401)
-        .json({ error: info.message || "Invalid username or password." });
-    }
-    req.logIn(user, (err) => {
-      if (err) {
-        // Log errors during login
-        console.error("Login error:", err);
-        return res
-          .status(500)
-          .json({ error: "An error occurred during login." });
-      }
-      // Authentication successful, send a success response
-      return res.status(200).json({
-        _id: user._id,
-        fullName: user.fullName,
-        username: user.username,
-        email: user.email,
-        followers: user.followers,
-        following: user.following,
-        profileImg: user.profileImg,
-        coverImg: user.coverImg,
-      });
-    });
-  })(req, res, next);
+export const login = async (req, res) => {
+	try {
+		const { username, password } = req.body;
+		const user = await User.findOne({ username });
+		const isPasswordCorrect = await bcrypt.compare(password, user?.password || "");
+
+		if (!user || !isPasswordCorrect) {
+			return res.status(400).json({ error: "Invalid username or password" });
+		}
+
+		generateTokenAndSetCookie(user._id, res);
+
+		res.status(200).json({
+			_id: user._id,
+			fullName: user.fullName,
+			username: user.username,
+			email: user.email,
+			followers: user.followers,
+			following: user.following,
+			profileImg: user.profileImg,
+			coverImg: user.coverImg,
+		});
+	} catch (error) {
+		console.log("Error in login controller", error.message);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
 };
 
-module.exports.logout = async (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      console.error("Logout error:", err);
-      return res
-        .status(500)
-        .json({ message: "An error occurred during logout." });
-    }
-
-    req.session.destroy((err) => {
-      if (err) {
-        console.error("Session destruction error:", err);
-        return res
-          .status(500)
-          .json({ message: "An error occurred while destroying the session." });
-      }
-
-      // Clear cookies if needed
-      res.clearCookie("connect.sid");
-
-      // Send a response or redirect
-      res.status(200).json({ message: "Logout successful!" });
-      // Alternatively, redirect:
-      // res.redirect('/login');
-    });
-  });
+export const logout = async (req, res) => {
+	try {
+		res.cookie("jwt", "", { maxAge: 0 });
+		res.status(200).json({ message: "Logged out successfully" });
+	} catch (error) {
+		console.log("Error in logout controller", error.message);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
 };
 
-module.exports.getMe = async (req,res)=>{
-  try{
-    const user = await User.findById(req.user._id);
-    res.status(200).json(user);
-  }
-  catch(error){
-    console.log("Error in getMe controller", error.message);
-    res.status(500).json({error:"Internal server error"});
-  }
-}
+export const getMe = async (req, res) => {
+	try {
+		const user = await User.findById(req.user._id).select("-password");
+		res.status(200).json(user);
+	} catch (error) {
+		console.log("Error in getMe controller", error.message);
+		res.status(500).json({ error: "Internal Server Error" });
+	}
+};

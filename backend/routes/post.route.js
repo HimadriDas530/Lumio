@@ -1,15 +1,25 @@
-const express= require("express");
+import express from "express";
+import { protectRoute } from "../middleware/protectRoute.js";
+import {
+	commentOnPost,
+	createPost,
+	deletePost,
+	getAllPosts,
+	getFollowingPosts,
+	getLikedPosts,
+	getUserPosts,
+	likeUnlikePost,
+} from "../controllers/post.controller.js";
+
 const router = express.Router();
-const {isLoggedIn} = require("../middleware/protectRoute");
-const { createPost, deletePost, commentOnPost, likeUnlikePost, getAllPosts, getLikedPosts, getFollowingPosts, getUserPosts } = require("../controllers/post.controller");
 
-router.get("/all",isLoggedIn,getAllPosts);
-router.get("/following",isLoggedIn,getFollowingPosts);
-router.get("/likes/:id",isLoggedIn,getLikedPosts);
-router.get("/user/:username",isLoggedIn,getUserPosts);
-router.post("/create",isLoggedIn,createPost);
-router.post("/like/:id",isLoggedIn,likeUnlikePost);
-router.post("/comment/:id",isLoggedIn,commentOnPost);
-router.delete("/:id",isLoggedIn,deletePost);
+router.get("/all", protectRoute, getAllPosts);
+router.get("/following", protectRoute, getFollowingPosts);
+router.get("/likes/:id", protectRoute, getLikedPosts);
+router.get("/user/:username", protectRoute, getUserPosts);
+router.post("/create", protectRoute, createPost);
+router.post("/like/:id", protectRoute, likeUnlikePost);
+router.post("/comment/:id", protectRoute, commentOnPost);
+router.delete("/:id", protectRoute, deletePost);
 
-module.exports = router;
+export default router;

@@ -1,8 +1,10 @@
-const express = require("express");
-const router = express.Router();
-const {isLoggedIn} = require("../middleware/protectRoute");
-const { getNotifications, deleteNotifications } = require("../controllers/notification.controller");
+import express from "express";
+import { protectRoute } from "../middleware/protectRoute.js";
+import { deleteNotifications, getNotifications } from "../controllers/notification.controller.js";
 
-router.get("/",isLoggedIn,getNotifications);
-router.delete("/",isLoggedIn,deleteNotifications);
-module.exports = router;
+const router = express.Router();
+
+router.get("/", protectRoute, getNotifications);
+router.delete("/", protectRoute, deleteNotifications);
+
+export default router;
