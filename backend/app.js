@@ -19,6 +19,17 @@ cloudinary.config({
 	api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const connectMongoDB = async () => {
+	try {
+		const conn = await mongoose.connect(process.env.MONGO_URI);
+		console.log(`MongoDB connected: ${conn.connection.host}`);
+	} catch (error) {
+		console.error(`Error connection to mongoDB: ${error.message}`);
+		process.exit(1);
+	}
+};
+
+connectMongoDB();
 const app = express();
 const PORT = process.env.PORT || 8080;
 const __dirname = path.resolve();
