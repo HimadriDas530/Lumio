@@ -18,7 +18,7 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const passport = require("passport");
 const cookieParser = require("cookie-parser");
-
+const path = require("path");
 // routes
 const authRoutes = require("./routes/auth.route");
 const userRoutes = require("./routes/user.route");
@@ -51,7 +51,7 @@ app.use(cors());
 app.use(express.json({limit:"5mb"})); //for parsing req.body
 app.use(express.urlencoded({ extended: true })); //to parse urlncoded form data
 app.use(cookieParser());
-
+__dirname = path.resolve();
 // setting up session with mongostore
 const store = MongoStore.create({
   mongoUrl: process.env.MONGO_URL,
@@ -92,13 +92,16 @@ passport.deserializeUser(User.deserializeUser());
 //
 
 // -------------------------------------------------------//
-
-// index route
-app.get("/", (req, res) => {
-  res.send("are u an idiot");
-});
-
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/notifications", notificationRoutes);
+
+
+if(process.env.NODE_ENV === 'production'){
+  app.use(express.static(path.join(__dirname,"/frontend/dist")));
+
+  app.get("*",(req,res)=>{
+    res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
+  })
+}

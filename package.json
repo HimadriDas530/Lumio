@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "backend/app.js",
   "scripts": {
-    "dev": "nodemon backend/app.js",
-    "start": "node backend/app.js"
+    "dev": "cross-env NODE_ENV=development nodemon backend/app.js",
+    "start": "cross-env NODE_ENV=production node backend/app.js",
+    "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
   },
   "keywords": [],
   "author": "Himadri Das",
@@ -23,5 +24,8 @@
     "passport-local": "^1.0.0",
     "passport-local-mongoose": "^8.0.0",
     "router": "^1.3.8"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
