@@ -4,8 +4,8 @@
   "main": "backend/app.js",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=development nodemon backend/app.js",
-    "start": "NODE_ENV=production node backend/app.js",
+    "dev": "cross-env NODE_ENV=development nodemon backend/app.js",
+    "start": "cross-env NODE_ENV=production node backend/app.js",
     "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
   },
   "keywords": [],

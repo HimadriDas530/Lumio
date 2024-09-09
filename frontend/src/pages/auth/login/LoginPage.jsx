@@ -38,8 +38,7 @@ const LoginPage = () => {
 		},
 		onSuccess:(data)=>{
 			console.log("Success:",data);
-			// toast.success("Logged in successfully");
-			// refetch the authUser query
+			toast.success("Logged in successfully");
 			queryClient.invalidateQueries({queryKey:["authUser"]});
 		}
 	});

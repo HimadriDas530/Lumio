@@ -18,16 +18,18 @@ cloudinary.config({
 });
 
 const connectMongoDB = async () => {
-	try {
 		const conn = await mongoose.connect(process.env.MONGO_URI);
-		console.log(`MongoDB connected: ${conn.connection.host}`);
-	} catch (error) {
-		console.error(`Error connection to mongoDB: ${error.message}`);
-		process.exit(1);
-	}
+		return conn;
 };
 
-connectMongoDB();
+connectMongoDB().then((result)=>{
+	console.log("MongoDB connected:",result.connection.host);
+})
+.catch((error)=>{
+	console.error(`Error connection to mongoDB: ${error.message}`);
+	process.exit(1);
+});
+
 const app = express();
 const PORT = process.env.PORT || 8080;
 const __dirname = path.resolve();
@@ -53,5 +55,4 @@ if (process.env.NODE_ENV === "production") {
 
 app.listen(PORT, () => {
 	console.log(`Server is running on port ${PORT}`);
-	connectMongoDB();
 });
